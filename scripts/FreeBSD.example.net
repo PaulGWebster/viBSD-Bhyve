@@ -1,0 +1,29 @@
+#!/bin/sh
+
+bridge=bridge1
+
+vmname=`basename "$0"`
+tapdev=$(ifconfig tap create)
+ifconfig $bridge addm $tapdev
+
+ifconfig $bridge up
+ifconfig $tapdev up
+
+echo "Starting the $vmname VM"
+
+bhyveload -m 256m -d /dev/zvol/base/venv/vms/$vmname $vmname
+
+bhyve -c 4 -m 256m -H -A -P \
+        -s 0,hostbridge \
+        -s 1,virtio-blk,/dev/zvol/base/venv/vms/$vmname \
+        -s 5,virtio-net,$tapdev \
+        -s 30,xhci,tablet \
+        -s 31,lpc -l com1,stdio \
+        $vmname
+
+bhyvectl --destroy --vm=$vmname
+
+ifconfig $bridge
+
+ifconfig $tapdev destroy
+
