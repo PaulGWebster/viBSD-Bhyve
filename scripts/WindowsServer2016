@@ -1,0 +1,31 @@
+#!/bin/sh
+
+bridge=bridge3
+
+vmname=`basename "$0"`
+tapdev=$(ifconfig tap create)
+ifconfig $bridge addm $tapdev
+
+ifconfig $bridge up
+ifconfig $tapdev up
+
+echo "Starting the $vmname VM"
+
+bhyve -c 4 -m 4G -w -H \
+        -s 0,hostbridge \
+        -s 2,ahci-cd,/venv/media/win/win2k16-server-multi.iso \
+        -s 3,ahci-cd,/venv/media/win/virtio-drivers.iso \
+        -s 4,ahci-hd,/dev/zvol/base/venv/vms/$vmname \
+        -s 5,virtio-net,$tapdev \
+        -s 29,fbuf,tcp=0.0.0.0:40600,w=1024,h=768,wait \
+        -s 30,xhci,tablet \
+        -s 31,lpc \
+        -l com1,stdio \
+        -l bootrom,/usr/local/share/uefi-firmware/BHYVE_UEFI.fd \
+        $vmname
+
+bhyvectl --destroy --vm=$vmname
+
+ifconfig $bridge deletem $tapdev
+ifconfig $tapdev destroy
+

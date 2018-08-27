@@ -1,0 +1,4 @@
+#!/usr/bin/env sh
+
+/usr/sbin/daemon -rft "IPV4 Keepalive" /sbin/ping 8.8.8.8
+
