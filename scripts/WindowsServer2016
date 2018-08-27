@@ -11,13 +11,13 @@ ifconfig $tapdev up
 
 echo "Starting the $vmname VM"
 
-bhyve -c 4 -m 4G -w -H \
+bhyve -c 4 -m 4G -H \
         -s 0,hostbridge \
-        -s 2,ahci-cd,/venv/media/win/win2k16-server-multi.iso \
-        -s 3,ahci-cd,/venv/media/win/virtio-drivers.iso \
-        -s 4,ahci-hd,/dev/zvol/base/venv/vms/$vmname \
-        -s 5,virtio-net,$tapdev \
-        -s 29,fbuf,tcp=0.0.0.0:40600,w=1024,h=768,wait \
+        -s 1,ahci-hd,/dev/zvol/base/venv/vms/$vmname \
+        -s 3,ahci-cd,/venv/media/win/win2k16-server-multi.iso \
+        -s 4,ahci-cd,/venv/media/win/virtio-drivers.iso \
+        -s 6,virtio-net,$tapdev \
+        -s 29,fbuf,tcp=0.0.0.0:45555,w=640,h=480,wait \
         -s 30,xhci,tablet \
         -s 31,lpc \
         -l com1,stdio \
